@@ -1,40 +1,11 @@
-class Database {
-    constructor(url: string) {
-    }
+export { Database } from "./database.js";
+export { Statement } from "./statement.js";
+export type { RunResult } from "./statement.js";
+export * from "./consts.js";
 
-    serialize(callback: () => void) {
-        callback();
-    }
-
-    run(query: string) {
-    }
-
-    prepare(query: string) {
-        return new Statement();
-    }
-
-    each(query: string, callback: (err: Error, row: any) => void) {
-    }
-
-    close() {
-    }
+export function verbose(): sqlite3 {
+    return sqlite3;
 }
 
-class Statement {
-    run() {
-    }
-
-    finalize() {
-    }
-}
-
-const sqlite3 = {
-    Database: Database,
-    verbose: () => {
-        return sqlite3;
-    }
-}
-
-module.exports = sqlite3;
-
-export {}
+const sqlite3 = exports;
+export type sqlite3 = typeof sqlite3;

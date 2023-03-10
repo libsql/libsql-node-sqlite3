@@ -1,6 +1,6 @@
 {
     "name": "@libsql/sqlite3",
-    "version": "0.0.1",
+    "version": "0.1.0-pre",
     "keywords": [
         "libsql",
         "database",
@@ -10,61 +10,42 @@
         "netlify",
         "lambda"
     ],
-    "description": "node-sqlite3 API for libSQL",
+    "description": "node-sqlite3-compatible API for libSQL",
     "repository": {
         "type": "git",
-        "url": "https://github.com/libsql/libsql-node-sqlite3.git"
+        "url": "github:libsql/libsql-node-sqlite3"
     },
     "authors": [
+        "Jan Špaček <honza@chiselstrike.com>",
         "Pekka Enberg <penberg@chiselstrike.com>"
     ],
     "license": "MIT",
-    "type": "module",
-    "main": "lib-cjs/index.js",
-    "types": "lib-esm/index.d.ts",
-    "scripts": {
-        "prebuild": "rm -rf ./lib-cjs ./lib-esm",
-        "build": "npm run build:cjs && npm run build:esm",
-        "build:cjs": "tsc -p tsconfig.build-cjs.json",
-        "build:esm": "tsc -p tsconfig.build-esm.json",
-        "postbuild": "cp package-cjs.json ./lib-cjs/package.json",
-        "test": "jest --config jestconfig.json",
-        "prettier-format": "prettier --config .prettierrc 'src/**/*.ts' --write"
-    },
+
+    "type": "commonjs",
+    "main": "lib/index.js",
+    "types": "lib/index.d.ts",
     "files": [
-        "lib-cjs/**",
-        "lib-esm/**"
+        "lib/**"
     ],
-    "devDependencies": {
-        "@types/better-sqlite3": "^7.6.3",
-        "@types/jest": "^29.2.5",
-        "jest": "^29.3.1",
-        "prettier": "^2.8.3",
-        "ts-jest": "^29.0.5",
-        "typescript": "^4.9.4"
-    },
-    "dependencies": {
-        "better-sqlite3": "^8.0.1",
-        "cross-fetch": "^3.1.5",
-        "js-base64": "^3.7.5"
-    },
     "exports": {
         ".": {
-            "types": "./lib-esm/index.d.ts",
-            "import": "./lib-esm/index.js",
-            "require": "./lib-cjs/index.js"
-        },
-        "./http": {
-            "types": "./lib-esm/http/index.d.ts",
-            "import": "./lib-esm/http/index.js",
-            "require": "./lib-cjs/http/index.js"
+            "types": "./lib/index.d.ts",
+            "require": "./lib/index.js"
         }
     },
-    "typesVersions": {
-        "*": {
-            "http": [
-                "./lib-esm/http/index.d.ts"
-            ]
-        }
+
+    "scripts": {
+        "build": "tsc",
+        "test": "jest --config jestconfig.json"
+    },
+
+    "dependencies": {
+        "@libsql/hrana-client": "^0.2.0"
+    },
+    "devDependencies": {
+        "@types/jest": "^29.2.5",
+        "jest": "^29.3.1",
+        "ts-jest": "^29.0.5",
+        "typescript": "^4.9.4"
     }
 }

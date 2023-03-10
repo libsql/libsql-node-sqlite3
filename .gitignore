@@ -1,4 +1,4 @@
-node_modules
-/lib-esm
-/lib-cjs
+/node_modules
+/lib
 *.tsbuildinfo
+Session.vim

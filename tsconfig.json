@@ -1,7 +1,17 @@
 {
-    "extends": "./tsconfig.base.json",
     "compilerOptions": {
-        "noEmit": true,
-        "incremental": true
-    }
+        "moduleResolution": "node",
+        "module": "commonjs",
+        "lib": ["esnext"],
+        "target": "esnext",
+        "esModuleInterop": true,
+        "isolatedModules": true,
+        "rootDir": "src/",
+        "strict": true,
+        "incremental": true,
+        "declaration": true,
+        "outDir": "./lib/"
+    },
+    "include": ["src/"],
+    "exclude": ["**/__tests__"]
 }
