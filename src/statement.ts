@@ -6,17 +6,15 @@ import type { Database } from "./database.js";
 
 export class Statement extends EventEmitter {
     #database: Database
-    #stream: hrana.Stream
     #stmt: hrana.Stmt
 
     lastID: number;
     changes: number;
     
     /** @private */
-    constructor(database: Database, stream: hrana.Stream, sql: string) {
+    constructor(database: Database, sql: string) {
         super();
         this.#database = database;
-        this.#stream = stream;
         this.#stmt = new hrana.Stmt(sql);
         this.lastID = NaN;
         this.changes = 0;
@@ -26,24 +24,24 @@ export class Statement extends EventEmitter {
     bind(...args: any[]): this;
     bind(...args: any[]): this {
         this.#stmt.unbindAll();
-        const callback = bindArgs(this.#stmt, args);
-        if (callback !== undefined) {
-            queueMicrotask(() => callback(null));
-        }
+        const callback = bindArgs(this.#stmt, args) as ((_: null) => void) | undefined;
+        this.#database._enqueue(() => {
+            return Promise.resolve(null).then(callback);
+        });
         return this;
     }
 
     reset(callback?: (err: null) => void): this {
-        if (callback !== undefined) {
-            queueMicrotask(() => callback(null));
-        }
+        this.#database._enqueue(() => {
+            return Promise.resolve(null).then(callback);
+        });
         return this;
     }
 
     finalize(callback?: (err: Error | null) => void): Database {
-        if (callback !== undefined) {
-            queueMicrotask(() => callback(null));
-        }
+        this.#database._enqueue(() => {
+            return Promise.resolve(null).then(callback);
+        });
         return this.#database;
     }
 
@@ -52,16 +50,19 @@ export class Statement extends EventEmitter {
     run(...args: any[]): this;
     run(...args: any[]): this {
         const callback = bindArgs(this.#stmt, args);
-        const promise = this.#stream.execute(this.#stmt);
-        if (callback !== undefined) {
-            promise.then((stmtResult) => {
-                this.#setRunResult(stmtResult);
-                callback.apply(this, [null]);
-            });
-            promise.catch((e) => {
-                callback.apply(this, [e]);
-            });
-        }
+        this.#database._enqueueStream((stream) => {
+            const promise = stream.execute(this.#stmt);
+            if (callback !== undefined) {
+                promise.then((stmtResult) => {
+                    this.#setRunResult(stmtResult);
+                    callback.apply(this, [null]);
+                });
+                promise.catch((e) => {
+                    callback.apply(this, [e]);
+                });
+            }
+            return promise;
+        });
         return this;
     }
 
@@ -70,16 +71,19 @@ export class Statement extends EventEmitter {
     get(...args: any[]): this;
     get(...args: any[]): this {
         const callback = bindArgs(this.#stmt, args);
-        const promise = this.#stream.queryRow(this.#stmt);
-        if (callback !== undefined) {
-            promise.then((rowResult) => {
-                this.#setRunResult(rowResult);
-                callback.apply(this, [null, rowResult.row]);
-            });
-            promise.catch((e) => {
-                callback.apply(this, [e]);
-            });
-        }
+        this.#database._enqueueStream((stream) => {
+            const promise = stream.queryRow(this.#stmt);
+            if (callback !== undefined) {
+                promise.then((rowResult) => {
+                    this.#setRunResult(rowResult);
+                    callback.apply(this, [null, rowResult.row]);
+                });
+                promise.catch((e) => {
+                    callback.apply(this, [e]);
+                });
+            }
+            return promise;
+        });
         return this;
     }
 
@@ -88,16 +92,19 @@ export class Statement extends EventEmitter {
     all(...args: any[]): this;
     all(...args: any[]): this {
         const callback = bindArgs(this.#stmt, args);
-        const promise = this.#stream.query(this.#stmt);
-        if (callback !== undefined) {
-            promise.then((rowsResult) => {
-                this.#setRunResult(rowsResult);
-                callback.apply(this, [null, rowsResult.rows]);
-            });
-            promise.catch((e) => {
-                callback.apply(this, [e, []]);
-            });
-        }
+        this.#database._enqueueStream((stream) => {
+            const promise = stream.query(this.#stmt);
+            if (callback !== undefined) {
+                promise.then((rowsResult) => {
+                    this.#setRunResult(rowsResult);
+                    callback.apply(this, [null, rowsResult.rows]);
+                });
+                promise.catch((e) => {
+                    callback.apply(this, [e, []]);
+                });
+            }
+            return promise;
+        });
         return this;
     }
 
@@ -120,25 +127,27 @@ export class Statement extends EventEmitter {
         }
 
         const rowCallback = bindArgs(this.#stmt, args);
-        const promise = this.#stream.query(this.#stmt);
-        if (rowCallback !== undefined) {
-            promise.then((rowsResult) => {
-                this.#setRunResult(rowsResult);
-                for (const row of rowsResult.rows) {
-                    rowCallback.apply(this, [null, row]);
-                }
-                if (completeCallback !== undefined) {
-                    completeCallback(null, rowsResult.rows.length);
-                }
-            });
-            promise.catch((e) => {
-                rowCallback.apply(this, [e, []]);
-                if (completeCallback !== undefined) {
-                    completeCallback(e, 0);
-                }
-            });
-        }
-
+        this.#database._enqueueStream((stream) => {
+            const promise = stream.query(this.#stmt);
+            if (rowCallback !== undefined) {
+                promise.then((rowsResult) => {
+                    this.#setRunResult(rowsResult);
+                    for (const row of rowsResult.rows) {
+                        rowCallback.apply(this, [null, row]);
+                    }
+                    if (completeCallback !== undefined) {
+                        completeCallback(null, rowsResult.rows.length);
+                    }
+                });
+                promise.catch((e) => {
+                    rowCallback.apply(this, [e, []]);
+                    if (completeCallback !== undefined) {
+                        completeCallback(e, 0);
+                    }
+                });
+            }
+            return promise;
+        });
         return this;
     }
 
