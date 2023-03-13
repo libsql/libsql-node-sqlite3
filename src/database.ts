@@ -218,10 +218,10 @@ export class Database extends EventEmitter {
         throw new Error("Database.exec() is not implemented");
     }
 
-    configure(option: "busyTimeout", value: number): void;
-    configure(option: "limit", id: number, value: number): void;
+    //configure(option: "busyTimeout", value: number): void;
+    //configure(option: "limit", id: number, value: number): void;
     configure(option: string, ...args: any[]): void {
-        throw new Error("Database.configure() is not implemented");
+        throw new Error(`${JSON.stringify(option)} is not a supported configuration option`);
     }
 
     loadExtension(filename: string, callback?: (err: Error | null) => void): this {

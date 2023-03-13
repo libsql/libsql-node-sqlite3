@@ -1,4 +1,40 @@
-# `node-sqlite3` wrapper for libSQL
+# `sqlite3` wrapper for libSQL
 
-This is the source repository for [`node-sqlite3`](https://www.npmjs.com/package/sqlite3) wrapper for libSQL.
-You can get many applications working with libSQL server mode by just replacing the import of `node-sqlite3` package to `@libsql/node-sqlite3` package.
+This package is a drop-in replacement of the Node package [`sqlite3`](https://www.npmjs.com/package/sqlite3) for use with [sqld](https://github.com/libsql/sqld) (the libSQL server mode).
+
+## Usage
+
+You can get many applications that use the `sqlite3` package work with sqld just by replacing `require('sqlite3')` with `require('@libsql/sqlite3')`, and using a `libsql://` URL instead of a filename:
+
+```javascript
+const sqlite3 = require('@libsql/sqlite3').verbose();
+const db = new sqlite3.Database('ws://localhost:2023');
+
+db.serialize(() => {
+    db.run('CREATE TABLE lorem (info TEXT)');
+
+    const stmt = db.prepare('INSERT INTO lorem VALUES (?)');
+    for (let i = 0; i < 10; i++) {
+        stmt.run('Ipsum ' + i);
+    }
+    stmt.finalize();
+
+    db.each('SELECT rowid AS id, info FROM lorem', (err, row) => {
+        console.log(row.id + ': ' + row.info);
+    });
+});
+
+db.close();
+```
+
+Instead of opening a local SQLite database, this package connects to sqld using a WebSocket (using the [Hrana protocol](https://github.com/libsql/hrana-client-ts).
+
+## Unsupported features
+
+Most APIs exposed by `sqlite3` should work as expected, but the following features are not yet implemented:
+
+- Flags passed to `new Database()` (they are ignored)
+- `Database.exec()`
+- `Database.configure()`
+- `Database.loadExtension()`
+- `Database.interrupt()`
