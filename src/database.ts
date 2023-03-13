@@ -6,66 +6,72 @@ import type { RunResult } from "./statement.js";
 import { Statement } from "./statement.js";
 
 type WaitingJob = {
-    execute: (stream: hrana.Stream) => Promise<unknown>,
+    execute: () => Promise<unknown>,
     serialize: boolean,
 }
 
 export class Database extends EventEmitter {
-    #client: hrana.Client | undefined;
-    #stream: hrana.Stream | undefined;
+    #client: hrana.Client;
+    #stream: hrana.Stream;
     #serialize: boolean;
     #waitingJobs: Array<WaitingJob>;
     #pendingPromises: Set<Promise<unknown>>;
 
-    constructor(url: string, callback?: (err: Error | null) => void);
-    constructor(url: string, mode?: number, callback?: (err: Error | null) => void);
-    constructor(url: string, ...args: any[]) {
-        let mode: number = OPEN_READWRITE | OPEN_CREATE | OPEN_FULLMUTEX;
+    constructor(url: string | URL, callback?: (err: Error | null) => void);
+    constructor(url: string | URL, mode?: number, callback?: (err: Error | null) => void);
+    constructor(url: string | URL, ...args: any[]) {
         let callback: ((err: Error | null) => void) | undefined;
+        if (args.length >= 1 && typeof args[args.length - 1] === "function") {
+            callback = args.pop();
+        }
 
-        let argI = 0;
-        if (argI < args.length && typeof args[argI] === "number") {
-            mode = args[argI++];
-        }
-        if (argI < args.length && typeof args[argI] === "function") {
-            callback = args[argI++];
-        }
-        if (argI < args.length && argI < 2) {
+        let mode: number = OPEN_READWRITE | OPEN_CREATE | OPEN_FULLMUTEX;
+        if (args.length === 1 && typeof args[0] === "number") {
+            mode = args.shift();
+        } else if (args.length >= 1) {
             throw new TypeError("Invalid arguments");
         }
 
         const parsedUrl = parseUrl(url);
 
         super();
-        this.#client = undefined;
-        this.#stream = undefined;
+        this.#client = hrana.open(parsedUrl.hranaUrl, parsedUrl.jwt);
+        this.#stream = this.#client.openStream();
         this.#serialize = false;
         this.#pendingPromises = new Set();
         this.#waitingJobs = [];
 
-        try {
-            this.#client = hrana.open(parsedUrl.hranaUrl, parsedUrl.jwt);
-            this.#stream = this.#client.openStream();
-        } catch (e) {
-            if (e instanceof hrana.ClientError) {
-                if (callback !== undefined) {
-                    callback(e);
-                } else {
-                    this.emit("error", e);
-                }
-                return;
-            }
-            throw e;
-        }
-
-        if (callback !== undefined) {
-            queueMicrotask(() => callback!(null));
-        }
-        this.emit("open");
+        this.#enqueueJob({
+            execute: () => this.#stream.queryValue("SELECT 1")
+                .then(() => {
+                    if (callback !== undefined) {
+                        callback(null);
+                    }
+                    this.emit("open");
+                })
+                .catch((err) => {
+                    if (callback !== undefined) {
+                        callback(err);
+                    } else {
+                        this.emit("error", err);
+                    }
+                }),
+            serialize: true,
+        });
     }
 
     /** @private */
-    _enqueue(execute: (stream: hrana.Stream) => Promise<unknown>): void {
+    _enqueueStream(execute: (stream: hrana.Stream) => Promise<unknown>): void {
+        this.#enqueueJob({
+            execute: () => {
+                return execute(this.#stream);
+            },
+            serialize: this.#serialize,
+        });
+    }
+
+    /** @private */
+    _enqueue(execute: () => Promise<unknown>): void {
         this.#enqueueJob({
             execute,
             serialize: this.#serialize,
@@ -73,28 +79,19 @@ export class Database extends EventEmitter {
     }
 
     #enqueueJob(job: WaitingJob): void {
-        if (this.#client === undefined || this.#stream === undefined) {
-            throw new Error("Database was not opened successfully");
-        }
-
         this.#waitingJobs.push(job);
-        this.#pumpJobs();
+        queueMicrotask(() => this.#pumpJobs());
     }
 
     #pumpJobs(): void {
-        if (this.#client === undefined || this.#stream === undefined) {
-            return;
-        }
-
         let jobI = 0;
         while (jobI < this.#waitingJobs.length) {
             const job = this.#waitingJobs[jobI];
             if (!job.serialize || this.#pendingPromises.size === 0) {
                 this.#waitingJobs.splice(jobI, 1);
 
-                const promise = job.execute(this.#stream);
+                const promise = job.execute();
                 this.#pendingPromises.add(promise);
-
                 promise.finally(() => {
                     this.#pendingPromises.delete(promise);
                     this.#pumpJobs();
@@ -108,15 +105,11 @@ export class Database extends EventEmitter {
     close(callback?: (err: Error | null) => void): void {
         this.#enqueueJob({
             execute: () => {
-                if (this.#client !== undefined) {
-                    this.#client.close();
-                }
-
+                this.#client.close();
                 if (callback !== undefined) {
-                    queueMicrotask(() => callback(null));
+                    callback(null);
                 }
                 this.emit("close");
-
                 return Promise.resolve();
             },
             serialize: true,
@@ -179,7 +172,6 @@ export class Database extends EventEmitter {
         return this;
     }
 
-
     prepare(sql: string, callback?: (this: Statement, err: Error | null) => void): Statement;
     prepare(sql: string, params: any, callback?: (this: Statement, err: Error | null) => void): Statement;
     prepare(sql: string, ...args: any[]): Statement;
@@ -215,6 +207,13 @@ export class Database extends EventEmitter {
         }
     }
 
+    wait(callback?: (param: null) => void): this {
+        this._enqueue(() => {
+            return Promise.resolve(null).then(callback);
+        });
+        return this;
+    }
+
     exec(sql: string, callback?: (this: Statement, err: Error | null) => void): this {
         throw new Error("Database.exec() is not implemented");
     }
@@ -229,10 +228,6 @@ export class Database extends EventEmitter {
         throw new Error("Database.loadExtension() is not implemented");
     }
 
-    wait(callback?: (param: null) => void): this {
-        throw new Error("Database.wait() is not implemented");
-    }
-
     interrupt(): void {
         throw new Error("Database.interrupt() is not implemented");
     }
@@ -244,8 +239,8 @@ type ParsedUrl = {
     jwt: string | undefined,
 };
 
-function parseUrl(urlStr: string): ParsedUrl {
-    const url = new URL(urlStr);
+function parseUrl(urlStr: string | URL): ParsedUrl {
+    const url = urlStr instanceof URL ? urlStr : new URL(urlStr);
 
     let jwt: string | undefined = undefined;
     for (const [key, value] of url.searchParams.entries()) {
