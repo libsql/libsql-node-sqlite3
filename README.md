@@ -1,6 +1,6 @@
 # `sqlite3` wrapper for libSQL
 
-This package is a drop-in replacement of the Node package [`sqlite3`](https://www.npmjs.com/package/sqlite3) for use with [sqld](https://github.com/libsql/sqld) (the libSQL server mode).
+This package is a drop-in replacement of the Node package [`sqlite3`](https://www.npmjs.com/package/sqlite3) for use with [sqld](https://github.com/libsql/sqld) (the libSQL server mode). Instead of opening a local SQLite database, this package connects to sqld using a WebSocket using the [Hrana protocol](https://github.com/libsql/hrana-client-ts).
 
 ## Usage
 
@@ -27,7 +27,27 @@ db.serialize(() => {
 db.close();
 ```
 
-Instead of opening a local SQLite database, this package connects to sqld using a WebSocket (using the [Hrana protocol](https://github.com/libsql/hrana-client-ts).
+### Usage with Knex
+
+You can use this package with Knex.js by replacing the `sqlite3` package in the SQLite dialect:
+
+```javascript
+const Knex = require("knex");
+const Client_SQLite3 = require("knex/lib/dialects/sqlite3");
+
+class Client_Libsql extends Client_SQLite3 {
+    _driver() {
+        return require("@libsql/sqlite3");
+    }
+}
+
+const knex = Knex({
+    client: Client_Libsql,
+    connection: {
+        filename: url,
+    },
+});
+```
 
 ## Unsupported features
 
