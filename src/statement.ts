@@ -50,7 +50,7 @@ export class Statement extends EventEmitter {
     run(...args: any[]): this;
     run(...args: any[]): this {
         const callback = bindArgs(this.#stmt, args);
-        this.#database._enqueueStream((stream) => {
+        this.#database._enqueue((stream) => {
             const promise = stream.execute(this.#stmt);
             if (callback !== undefined) {
                 promise.then((stmtResult) => {
@@ -71,7 +71,7 @@ export class Statement extends EventEmitter {
     get(...args: any[]): this;
     get(...args: any[]): this {
         const callback = bindArgs(this.#stmt, args);
-        this.#database._enqueueStream((stream) => {
+        this.#database._enqueue((stream) => {
             const promise = stream.queryRow(this.#stmt);
             if (callback !== undefined) {
                 promise.then((rowResult) => {
@@ -92,7 +92,7 @@ export class Statement extends EventEmitter {
     all(...args: any[]): this;
     all(...args: any[]): this {
         const callback = bindArgs(this.#stmt, args);
-        this.#database._enqueueStream((stream) => {
+        this.#database._enqueue((stream) => {
             const promise = stream.query(this.#stmt);
             if (callback !== undefined) {
                 promise.then((rowsResult) => {
@@ -127,7 +127,7 @@ export class Statement extends EventEmitter {
         }
 
         const rowCallback = bindArgs(this.#stmt, args);
-        this.#database._enqueueStream((stream) => {
+        this.#database._enqueue((stream) => {
             const promise = stream.query(this.#stmt);
             if (rowCallback !== undefined) {
                 promise.then((rowsResult) => {

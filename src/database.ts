@@ -6,14 +6,13 @@ import type { RunResult } from "./statement.js";
 import { Statement } from "./statement.js";
 
 type WaitingJob = {
-    execute: (stream?: hrana.Stream) => Promise<unknown>,
-    wantStream: boolean,
+    execute: (stream: hrana.Stream) => Promise<unknown>,
     serialize: boolean,
 }
 
 export class Database extends EventEmitter {
     #client: hrana.Client | undefined;
-    #serialStream: hrana.Stream | undefined;
+    #stream: hrana.Stream | undefined;
     #serialize: boolean;
     #waitingJobs: Array<WaitingJob>;
     #pendingPromises: Set<Promise<unknown>>;
@@ -39,14 +38,14 @@ export class Database extends EventEmitter {
 
         super();
         this.#client = undefined;
-        this.#serialStream = undefined;
+        this.#stream = undefined;
         this.#serialize = false;
         this.#pendingPromises = new Set();
         this.#waitingJobs = [];
 
         try {
             this.#client = hrana.open(parsedUrl.hranaUrl, parsedUrl.jwt);
-            this.#serialStream = this.#client.openStream();
+            this.#stream = this.#client.openStream();
         } catch (e) {
             if (e instanceof hrana.ClientError) {
                 if (callback !== undefined) {
@@ -66,25 +65,15 @@ export class Database extends EventEmitter {
     }
 
     /** @private */
-    _enqueueStream(execute: (stream: hrana.Stream) => Promise<unknown>): void {
-        this.#enqueueJob({
-            execute: execute as (stream: hrana.Stream | undefined) => Promise<unknown>,
-            wantStream: true,
-            serialize: this.#serialize,
-        });
-    }
-
-    /** @private */
-    _enqueue(execute: () => Promise<unknown>): void {
+    _enqueue(execute: (stream: hrana.Stream) => Promise<unknown>): void {
         this.#enqueueJob({
             execute,
-            wantStream: false,
             serialize: this.#serialize,
         });
     }
 
     #enqueueJob(job: WaitingJob): void {
-        if (this.#client === undefined || this.#serialStream === undefined) {
+        if (this.#client === undefined || this.#stream === undefined) {
             throw new Error("Database was not opened successfully");
         }
 
@@ -93,7 +82,7 @@ export class Database extends EventEmitter {
     }
 
     #pumpJobs(): void {
-        if (this.#client === undefined || this.#serialStream === undefined) {
+        if (this.#client === undefined || this.#stream === undefined) {
             return;
         }
 
@@ -103,17 +92,10 @@ export class Database extends EventEmitter {
             if (!job.serialize || this.#pendingPromises.size === 0) {
                 this.#waitingJobs.splice(jobI, 1);
 
-                let stream: hrana.Stream | undefined;
-                if (job.wantStream) {
-                    stream = job.serialize ? this.#serialStream : this.#client.openStream();
-                }
-                const promise = job.execute(stream);
+                const promise = job.execute(this.#stream);
                 this.#pendingPromises.add(promise);
 
                 promise.finally(() => {
-                    if (stream !== undefined && stream !== this.#serialStream) {
-                        stream.close();
-                    }
                     this.#pendingPromises.delete(promise);
                     this.#pumpJobs();
                 });
@@ -137,7 +119,6 @@ export class Database extends EventEmitter {
 
                 return Promise.resolve();
             },
-            wantStream: false,
             serialize: true,
         });
     }
