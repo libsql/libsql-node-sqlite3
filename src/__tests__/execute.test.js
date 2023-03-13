@@ -11,6 +11,7 @@ let db;
 beforeEach((done) => {
     db = new sqlite3.Database(url, throwOnErr);
     db.serialize();
+    db.run("DROP TABLE IF EXISTS t", throwOnErr);
     db.run("CREATE TABLE t (id INTEGER PRIMARY KEY, a, b)", throwOnErr);
     db.run("INSERT INTO t (id, a, b) VALUES (1, 'one', 'ten')", throwOnErr);
     db.run("INSERT INTO t (id, a, b) VALUES (2, 'two', 'twenty')", throwOnErr);
