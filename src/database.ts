@@ -147,6 +147,21 @@ export class Database extends EventEmitter {
         return this;
     }
 
+    map(
+        sql: string,
+        callback?: (this: Statement, err: Error | null, rows: Record<any, any>) => void,
+    ): this;
+    map(
+        sql: string,
+        params: any,
+        callback?: (this: Statement, err: Error | null, rows: Record<any, any>) => void,
+    ): this;
+    map(sql: string, ...args: any[]): this;
+    map(sql: string, ...args: any[]): this {
+        new Statement(this, sql).map(...args);
+        return this;
+    }
+
     each(
         sql: string,
         callback?: (this: Statement, err: Error | null, row: any) => void,

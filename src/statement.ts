@@ -108,6 +108,28 @@ export class Statement extends EventEmitter {
         return this;
     }
 
+    map(callback?: (this: Statement, err: Error | null, rows: Record<any, any>) => void): this;
+    map(args: any, callback?: (this: Statement, err: Error | null, rows: Record<any, any>) => void): this;
+    map(...args: any[]): this;
+    map(...args: any[]): this {
+        const callback = bindArgs(this.#stmt, args);
+        this.#database._enqueue((stream) => {
+            const promise = stream.query(this.#stmt);
+            if (callback !== undefined) {
+                promise.then((rowsResult) => {
+                    this.#setRunResult(rowsResult);
+                    const resultObj = mapRowsToObject(rowsResult);
+                    callback.apply(this, [null, resultObj]);
+                });
+                promise.catch((e) => {
+                    callback.apply(this, [e, []]);
+                });
+            }
+            return promise;
+        });
+        return this;
+    }
+
     each(
         callback?: (this: RunResult, err: Error | null, row: any) => void,
         complete?: (err: Error | null, count: number) => void,
@@ -189,4 +211,13 @@ function bindArgs(stmt: hrana.Stmt, args: any[]): Function | undefined {
     }
 
     return callback;
+}
+
+function mapRowsToObject(rowsResult: hrana.RowsResult): Record<any, any> {
+    const resultObj: Record<any, any> = {};
+    const singleValue = rowsResult.columnNames.length === 2;
+    rowsResult.rows.forEach((row) => {
+        resultObj[row[0] as any] = singleValue ? row[1] : row;
+    });
+    return resultObj;
 }
