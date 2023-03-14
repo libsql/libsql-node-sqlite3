@@ -6,11 +6,14 @@
         "target": "esnext",
         "esModuleInterop": true,
         "isolatedModules": true,
-        "rootDir": "src/",
+        "allowJs": true,
+
         "strict": true,
         "incremental": true,
-        "declaration": true,
-        "outDir": "./lib/"
+
+        "rootDir": "src/",
+        "outDir": "./lib/",
+        "declaration": false
     },
     "include": ["src/"],
     "exclude": ["**/__tests__"]

@@ -17,9 +17,9 @@ export class Database extends EventEmitter {
     #waitingJobs: Array<WaitingJob>;
     #pendingPromises: Set<Promise<unknown>>;
 
-    constructor(url: string | URL, callback?: (err: Error | null) => void);
-    constructor(url: string | URL, mode?: number, callback?: (err: Error | null) => void);
-    constructor(url: string | URL, ...args: any[]) {
+    constructor(url: string, callback?: (err: Error | null) => void);
+    constructor(url: string, mode?: number, callback?: (err: Error | null) => void);
+    constructor(url: string, ...args: any[]) {
         let callback: ((err: Error | null) => void) | undefined;
         if (args.length >= 1 && typeof args[args.length - 1] === "function") {
             callback = args.pop();
@@ -239,8 +239,8 @@ type ParsedUrl = {
     jwt: string | undefined,
 };
 
-function parseUrl(urlStr: string | URL): ParsedUrl {
-    const url = urlStr instanceof URL ? urlStr : new URL(urlStr);
+function parseUrl(urlStr: string): ParsedUrl {
+    const url = new URL(urlStr);
 
     let jwt: string | undefined = undefined;
     for (const [key, value] of url.searchParams.entries()) {
