@@ -37,6 +37,8 @@ The library accepts multiple URL schemas, but it always uses WebSockets internal
 To use a JWT for authentication, you can use the `jwt` query parameter (for example,
 `ws://localhost?jwt=<token>`).
 
+You can also pass a `file:` URL to `new sqlite3.Database()` to use the original `sqlite3` package. The returned database will be a `Database` from `sqlite3`, not the `Database` from `@libsql/sqlite3`. You will need to install `sqlite3` yourself, this package does not depend on `sqlite3`.
+
 ### Usage with Knex
 
 You can use this package with Knex.js by replacing the `sqlite3` package in the SQLite dialect:

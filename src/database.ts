@@ -1,7 +1,7 @@
 import { EventEmitter } from "node:events";
 import * as hrana from "@libsql/hrana-client";
 
-import { OPEN_READWRITE, OPEN_CREATE, OPEN_FULLMUTEX } from "./consts.js";
+import { OPEN_READWRITE, OPEN_CREATE, OPEN_FULLMUTEX, OPEN_URI } from "./consts.js";
 import type { RunResult } from "./statement.js";
 import { Statement } from "./statement.js";
 
@@ -11,10 +11,17 @@ type WaitingJob = {
 }
 
 export class Database extends EventEmitter {
+    // the ts-expect-errors are needed because the constructor may return early with another instance
+
+    // @ts-expect-error
     #client: hrana.Client;
+    // @ts-expect-error
     #stream: hrana.Stream;
+    // @ts-expect-error
     #serialize: boolean;
+    // @ts-expect-error
     #waitingJobs: Array<WaitingJob>;
+    // @ts-expect-error
     #pendingPromises: Set<Promise<unknown>>;
 
     constructor(url: string, callback?: (err: Error | null) => void);
@@ -32,7 +39,13 @@ export class Database extends EventEmitter {
             throw new TypeError("Invalid arguments");
         }
 
-        const parsedUrl = parseUrl(url);
+        const url_ = new URL(url);
+        if (url_.protocol === "file:") {
+            const sqlite3 = require("sqlite3");
+            return new sqlite3.Database(url, mode | OPEN_URI, callback);
+        }
+
+        const parsedUrl = parseUrl(url_);
 
         super();
         this.#client = hrana.open(parsedUrl.hranaUrl, parsedUrl.jwt);
@@ -239,9 +252,7 @@ type ParsedUrl = {
     jwt: string | undefined,
 };
 
-function parseUrl(urlStr: string): ParsedUrl {
-    const url = new URL(urlStr);
-
+function parseUrl(url: URL): ParsedUrl {
     let jwt: string | undefined = undefined;
     for (const [key, value] of url.searchParams.entries()) {
         if (key === "jwt") {

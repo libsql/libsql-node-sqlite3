@@ -32,6 +32,7 @@
         "clean": "rm -rf ./lib ./*.tsbuildinfo",
         "build": "tsc && cp src/index.d.ts lib/index.d.ts",
         "clean-build": "npm run clean && npm run build",
+        "typecheck": "tsc --noEmit",
         "test": "jest"
     },
 
