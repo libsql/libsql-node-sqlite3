@@ -39,13 +39,12 @@ export class Database extends EventEmitter {
             throw new TypeError("Invalid arguments");
         }
 
-        const url_ = new URL(url);
-        if (url_.protocol === "file:") {
+        if (url.startsWith("file:")) {
             const sqlite3 = require("sqlite3");
             return new sqlite3.Database(url, mode | OPEN_URI, callback);
         }
 
-        const parsedUrl = parseUrl(url_);
+        const parsedUrl = parseUrl(url);
 
         super();
         this.#client = hrana.open(parsedUrl.hranaUrl, parsedUrl.jwt);
@@ -252,7 +251,9 @@ type ParsedUrl = {
     jwt: string | undefined,
 };
 
-function parseUrl(url: URL): ParsedUrl {
+function parseUrl(urlStr: string): ParsedUrl {
+    const url = new URL(urlStr);
+
     let jwt: string | undefined = undefined;
     for (const [key, value] of url.searchParams.entries()) {
         if (key === "jwt") {
