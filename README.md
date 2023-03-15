@@ -4,7 +4,7 @@ This package is a drop-in replacement of the Node package [`sqlite3`](https://ww
 
 ## Usage
 
-You can get many applications that use the `sqlite3` package work with sqld just by replacing `require('sqlite3')` with `require('@libsql/sqlite3')`, and using a `libsql://` URL instead of a filename:
+You can get many applications that use the `sqlite3` package work with sqld just by replacing `require('sqlite3')` with `require('@libsql/sqlite3')`, and using a `ws://` URL instead of a filename:
 
 ```javascript
 const sqlite3 = require('@libsql/sqlite3').verbose();
@@ -26,6 +26,16 @@ db.serialize(() => {
 
 db.close();
 ```
+
+### URL
+
+The library accepts multiple URL schemas, but it always uses WebSockets internally:
+
+- `ws://`, `http://` and `libsql://` URLs are converted into `ws://` (WebSockets)
+- `wss://`, `https://` and `libsqls://` URLs are converted into `wss://` (WebSockets with TLS)
+
+To use a JWT for authentication, you can use the `jwt` query parameter (for example,
+`ws://localhost?jwt=<token>`).
 
 ### Usage with Knex
 
