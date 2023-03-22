@@ -41,7 +41,9 @@ You can also pass a `file:` URL to `new sqlite3.Database()` to use the original 
 
 ### Usage with Knex
 
-You can use this package with Knex.js by replacing the `sqlite3` package in the SQLite dialect:
+You can use this package with Knex.js by replacing the `sqlite3` package in the SQLite dialect.
+
+**JavaScript:**
 
 ```javascript
 const Knex = require("knex");
@@ -55,6 +57,25 @@ class Client_Libsql extends Client_SQLite3 {
 
 const knex = Knex({
     client: Client_Libsql,
+    connection: {
+        filename: url,
+    },
+});
+```
+
+**TypeScript:**
+
+```typescript
+import { Knex, knex } from "knex";
+const Client_SQLite3 = require("knex/lib/dialects/sqlite3");
+
+class Client_Libsql extends Client_SQLite3 {
+    _driver() {
+        return require("@libsql/sqlite3");
+    }
+}
+const db = knex({
+    client: Client_Libsql as any,
     connection: {
         filename: url,
     },
