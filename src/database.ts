@@ -47,7 +47,7 @@ export class Database extends EventEmitter {
         const parsedUrl = parseUrl(url);
 
         super();
-        this.#client = hrana.open(parsedUrl.hranaUrl, parsedUrl.jwt);
+        this.#client = hrana.open(parsedUrl.hranaUrl, parsedUrl.authToken);
         this.#stream = this.#client.openStream();
         this.#serialize = false;
         this.#pendingPromises = new Set();
@@ -248,16 +248,17 @@ export class Database extends EventEmitter {
 
 type ParsedUrl = {
     hranaUrl: string,
-    jwt: string | undefined,
+    authToken: string | undefined,
 };
 
 function parseUrl(urlStr: string): ParsedUrl {
     const url = new URL(urlStr);
 
-    let jwt: string | undefined = undefined;
+    let authToken: string | undefined = undefined;
     for (const [key, value] of url.searchParams.entries()) {
-        if (key === "jwt") {
-            jwt = value;
+        if (key === "authToken" || key === "jwt") {
+            // TODO: the "jwt" variant is here only for backward compatibility (before 2023-03)
+            authToken = value;
         } else {
             throw new TypeError(`Unknown URL query argument ${JSON.stringify(key)}`);
         }
@@ -281,5 +282,5 @@ function parseUrl(urlStr: string): ParsedUrl {
     }
 
     const hranaUrl = `${hranaScheme}//${url.host}${url.pathname}`;
-    return { hranaUrl, jwt };
+    return { hranaUrl, authToken };
 }
