@@ -265,9 +265,9 @@ function parseUrl(urlStr: string): ParsedUrl {
     }
 
     let hranaScheme: string;
-    if (url.protocol === "libsql:" || url.protocol === "http:") {
+    if (url.protocol === "http:") {
         hranaScheme = "ws:";
-    } else if (url.protocol === "libsqls:" || url.protocol === "https:") {
+    } else if (url.protocol === "libsql:" || url.protocol === "https:") {
         hranaScheme = "wss:";
     } else {
         hranaScheme = url.protocol;

@@ -31,8 +31,8 @@ db.close();
 
 The library accepts multiple URL schemas, but it always uses WebSockets internally:
 
-- `ws://`, `http://` and `libsql://` URLs are converted into `ws://` (WebSockets)
-- `wss://`, `https://` and `libsqls://` URLs are converted into `wss://` (WebSockets with TLS)
+- `ws://` and `http://` URLs are converted into `ws://` (WebSockets)
+- `wss://`, `https://` and `libsql://` URLs are converted into `wss://` (WebSockets with TLS)
 
 To use a JWT for authentication, you can use the `authToken` query parameter (for example,
 `ws://localhost?authToken=<token>`).

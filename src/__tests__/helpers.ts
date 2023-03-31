@@ -1,4 +1,4 @@
-const url_ = new URL(process.env.URL ?? "ws://localhost:2023");
+const url_ = new URL(process.env.URL ?? "ws://localhost:8080");
 const authToken = process.env.AUTH_TOKEN;
 if (authToken) {
     url_.searchParams.set("authToken", authToken);
