@@ -30,6 +30,7 @@
 
     "scripts": {
         "clean": "rm -rf ./lib ./*.tsbuildinfo",
+        "prepublishOnly": "npm run clean-build",
         "build": "tsc && cp src/index.d.ts lib/index.d.ts",
         "clean-build": "npm run clean && npm run build",
         "typecheck": "tsc --noEmit",
