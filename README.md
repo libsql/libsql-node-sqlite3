@@ -91,3 +91,11 @@ Most APIs exposed by `sqlite3` should work as expected, but the following featur
 - `Database.configure()`
 - `Database.loadExtension()`
 - `Database.interrupt()`
+
+## License
+
+This project is licensed under the MIT license.
+
+### Contribution
+
+Unless you explicitly state otherwise, any contribution intentionally submitted for inclusion in `@libsql/sqlite3` by you, shall be licensed as MIT, without any additional terms or conditions.
