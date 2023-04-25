@@ -256,8 +256,7 @@ function parseUrl(urlStr: string): ParsedUrl {
 
     let authToken: string | undefined = undefined;
     for (const [key, value] of url.searchParams.entries()) {
-        if (key === "authToken" || key === "jwt") {
-            // TODO: the "jwt" variant is here only for backward compatibility (before 2023-03)
+        if (key === "authToken") {
             authToken = value;
         } else {
             throw new TypeError(`Unknown URL query argument ${JSON.stringify(key)}`);
@@ -266,16 +265,25 @@ function parseUrl(urlStr: string): ParsedUrl {
 
     let hranaScheme: string;
     if (url.protocol === "http:") {
-        hranaScheme = "ws:";
-    } else if (url.protocol === "libsql:" || url.protocol === "https:") {
+        throw new Error('This client does not support "http:" URLs. Please use a "ws:" URL instead.');
+    } else if (url.protocol === "https:") {
+        throw new Error('This client does not support "https:" URLs. Please use a "wss:" URL instead.');
+    } else if (url.protocol === "libsql:") {
         hranaScheme = "wss:";
-    } else {
+    } else if (url.protocol === "ws:" || url.protocol === "wss:") {
         hranaScheme = url.protocol;
+    } else {
+        throw new Error(
+            `This client does not support ${JSON.stringify(url.protocol)} URLs. ` +
+                'Please use a "libsql:", "ws:" or "wss:" URL instead.'
+        );
     }
 
     if (url.username || url.password) {
-        throw new TypeError("The libsql WebSocket protocol (Hrana) does not support " +
-            "basic authentication, please use JWT instead");
+        throw new TypeError(
+            "This client does not support HTTP Basic authentication with a username and password. " +
+                'You can authenticate using a token passed in the "authToken" URL query parameter.',
+        );
     }
     if (url.hash) {
         throw new TypeError("URL fragments are not supported");
