@@ -44,7 +44,7 @@ export class Statement extends EventEmitter {
     run(...args: any[]): this;
     run(...args: any[]): this {
         const callback = bindArgs(this.#stmt, args);
-        this.#database._enqueueStream((stream) => stream.execute(this.#stmt)
+        this.#database._enqueueStream((stream) => stream.run(this.#stmt)
             .then((stmtResult) => {
                 this.#setRunResult(stmtResult);
                 if (callback !== undefined) {
