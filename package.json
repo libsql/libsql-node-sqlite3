@@ -38,7 +38,7 @@
     },
 
     "dependencies": {
-        "@libsql/hrana-client": "^0.3.7"
+        "@libsql/hrana-client": "^0.3.10"
     },
     "devDependencies": {
         "@types/jest": "^29.2.5",

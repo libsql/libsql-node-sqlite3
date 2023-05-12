@@ -226,8 +226,33 @@ export class Database extends EventEmitter {
         return this;
     }
 
-    exec(sql: string, callback?: (this: Statement, err: Error | null) => void): this {
-        throw new Error("Database.exec() is not implemented");
+    exec(sql: string, callback?: (this: Database, err: Error | null) => void): this {
+        const executeSequence = async (stream: hrana.Stream): Promise<void> => {
+            const version = await this.#client.getVersion();
+            if (version < 2) {
+                throw new Error(
+                    "Database.exec() is supported only with newer servers that implement version 2 " +
+                        "of the WebSocket protocol (Hrana)",
+                );
+            }
+            return await stream.sequence(sql);
+        };
+
+        this._enqueueStream((stream) => executeSequence(stream)
+            .then(() => {
+                if (callback !== undefined) {
+                    callback.apply(this, [null]);
+                }
+            })
+            .catch((e) => {
+                if (callback !== undefined) {
+                    callback.apply(this, [e]);
+                } else {
+                    this.emit("error", e);
+                }
+            })
+        );
+        return this;
     }
 
     //configure(option: "busyTimeout", value: number): void;

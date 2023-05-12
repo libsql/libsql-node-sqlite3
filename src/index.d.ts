@@ -141,7 +141,7 @@ export class Database extends events.EventEmitter {
     each<T>(sql: string, params: any, callback?: (this: Statement, err: Error | null, row: T) => void, complete?: (err: Error | null, count: number) => void): this;
     each(sql: string, ...params: any[]): this;
 
-    exec(sql: string, callback?: (this: Statement, err: Error | null) => void): this;
+    exec(sql: string, callback?: (this: Database, err: Error | null) => void): this;
 
     prepare(sql: string, callback?: (this: Statement, err: Error | null) => void): Statement;
     prepare(sql: string, params: any, callback?: (this: Statement, err: Error | null) => void): Statement;

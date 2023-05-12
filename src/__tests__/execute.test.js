@@ -1,5 +1,5 @@
 const sqlite3 = require("..");
-const { url } = require("./helpers.js");
+const { url, hranaVersion } = require("./helpers.js");
 
 function throwOnErr(err) {
     if (err !== null) {
@@ -183,6 +183,24 @@ describe("Database.each()", () => {
             expect(err).toBeNull();
             expect(count).toStrictEqual(3);
             expect(i).toStrictEqual(3);
+        });
+    });
+});
+
+(hranaVersion >= 2 ? describe : describe.skip)("Database.exec()", () => {
+    test("successful execution", (done) => {
+        db.exec("CREATE TABLE t2 (a); INSERT INTO t2 VALUES ('one'), ('two'); DROP TABLE t2", function (err) {
+            done();
+            expect(this).toStrictEqual(db);
+            expect(err).toBeNull();
+        });
+    });
+
+    test("error during execution", (done) => {
+        db.exec("SELECT 1; SELECT foo; SELECT 2", function (err) {
+            done();
+            expect(this).toStrictEqual(db);
+            expect(err).toBeInstanceOf(Error);
         });
     });
 });

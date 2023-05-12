@@ -4,3 +4,5 @@ if (authToken) {
     url_.searchParams.set("authToken", authToken);
 }
 export const url = url_.toString();
+
+export const hranaVersion = parseInt(process.env.VERSION ?? "2", 10);
