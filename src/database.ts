@@ -40,8 +40,9 @@ export class Database extends EventEmitter {
         }
 
         if (url.startsWith("file:")) {
+	    const filename = url.slice(5)
             const sqlite3 = require("sqlite3");
-            return new sqlite3.Database(url, mode | OPEN_URI, callback);
+            return new sqlite3.Database(filename, mode | OPEN_URI, callback);
         }
 
         const parsedUrl = hrana.parseLibsqlUrl(url);
