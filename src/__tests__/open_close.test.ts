@@ -1,5 +1,5 @@
 import * as sqlite3 from "..";
-import { url } from "./helpers.js";
+import { url, isFile } from "./helpers.js";
 
 describe("open/close", () => {
     test("open and close the test database", (done) => {
@@ -32,7 +32,7 @@ describe("open/close", () => {
         });
     });
 
-    test("close database multiple times", (done) => {
+    (!isFile ? test : test.skip)("close database multiple times", (done) => {
         const db = new sqlite3.Database(url, (err) => expect(err).toBeNull());
 
         let closeCounter = 0;

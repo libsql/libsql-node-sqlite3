@@ -232,7 +232,7 @@ export class Database extends EventEmitter {
             if (version < 2) {
                 throw new Error(
                     "Database.exec() is supported only with newer servers that implement version 2 " +
-                        "of the WebSocket protocol (Hrana)",
+                        "of the Hrana protocol",
                 );
             }
             return await stream.sequence(sql);

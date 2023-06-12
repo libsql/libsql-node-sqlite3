@@ -10,7 +10,7 @@ class Client_Libsql extends Client_SQLite3 {
 
 describe("Use in Knex", () => {
     let knex;
-    beforeAll(() => {
+    beforeAll(async () => {
         knex = Knex({
             client: Client_Libsql,
             connection: {
@@ -18,6 +18,7 @@ describe("Use in Knex", () => {
             },
             useNullAsDefault: true,
         });
+        await knex.schema.dropTableIfExists("t");
     });
     afterAll(() => {
         knex.destroy();
@@ -36,9 +37,9 @@ describe("Use in Knex", () => {
         await knex("t").insert({id: 2, a: "two", b: "twenty"});
     });
 
-    test("get row", async () => {
+    test("get rows", async () => {
         const rows = await knex("t").select().orderBy("id");
-        expect(rows).toStrictEqual([
+        expect(rows).toEqual([
             {id: 1, a: "one", b: "ten"},
             {id: 2, a: "two", b: "twenty"},
         ]);

@@ -43,3 +43,6 @@ jobs:
     - name: "Test with Hrana 2"
       run: "python hrana-test-server/server_v2.py npm test"
       env: {"VERSION": "2"}
+    - name: "Test with local file"
+      run: "npm test"
+      env: {"URL": "file:/tmp/test.db"}

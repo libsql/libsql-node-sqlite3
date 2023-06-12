@@ -209,9 +209,17 @@ function bindArgs(stmt: hrana.Stmt, args: any[]): Function | undefined {
 
 function mapRowsToObject(rowsResult: hrana.RowsResult): Record<any, any> {
     const resultObj: Record<any, any> = {};
-    const singleValue = rowsResult.columnNames.length === 2;
+    const columnCount = rowsResult.columnNames.length;
     rowsResult.rows.forEach((row) => {
-        resultObj[row[0] as any] = singleValue ? row[1] : row;
+        let value;
+        if (columnCount === 2) {
+            value = row[1];
+        } else if (columnCount === 1) {
+            value = undefined;
+        } else {
+            value = row;
+        }
+        resultObj[row[0] as any] = value;
     });
     return resultObj;
 }
