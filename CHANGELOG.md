@@ -1,5 +1,7 @@
 # Changelog
 
+## Unreleased
+
 ## 0.3.1 -- 2023-06-12
 
 - Fixed compatibility with `sqlite3` package by accepting (and ignoring) `undefined` parameters
