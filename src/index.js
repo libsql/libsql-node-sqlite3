@@ -23,6 +23,6 @@ sqlite3.verbose = function() {
     return sqlite3;
 }
 
-for (const [key, value] in Object.entries(consts)) {
+for (const [key, value] of Object.entries(consts)) {
     sqlite3[key] = value;
 }
