@@ -1,6 +1,6 @@
 {
     "name": "@libsql/sqlite3",
-    "version": "0.3.0-pre",
+    "version": "0.3.0",
     "keywords": [
         "libsql",
         "database",
