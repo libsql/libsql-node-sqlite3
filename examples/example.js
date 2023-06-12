@@ -1,5 +1,5 @@
 const sqlite3 = require("@libsql/sqlite3").verbose();
-const db = new sqlite3.Database("ws://localhost:8080");
+const db = new sqlite3.Database("libsql://localhost:8080?tls=0");
 
 db.serialize(() => {
     db.run("CREATE TABLE lorem (info TEXT)");

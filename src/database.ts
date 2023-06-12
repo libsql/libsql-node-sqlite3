@@ -47,7 +47,11 @@ export class Database extends EventEmitter {
         const parsedUrl = hrana.parseLibsqlUrl(url);
 
         super();
-        this.#client = hrana.open(parsedUrl.hranaUrl, parsedUrl.authToken);
+        if (parsedUrl.hranaHttpUrl !== undefined) {
+            this.#client = hrana.openHttp(parsedUrl.hranaHttpUrl, parsedUrl.authToken);
+        } else {
+            this.#client = hrana.openWs(parsedUrl.hranaWsUrl!, parsedUrl.authToken);
+        }
         this.#stream = this.#client.openStream();
         this.#serialize = false;
         this.#pendingPromises = new Set();

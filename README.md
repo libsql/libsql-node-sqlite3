@@ -4,11 +4,11 @@ This package is a drop-in replacement of the Node package [`sqlite3`](https://ww
 
 ## Usage
 
-You can get many applications that use the `sqlite3` package work with sqld just by replacing `require('sqlite3')` with `require('@libsql/sqlite3')`, and using a `ws://` URL instead of a filename:
+You can get many applications that use the `sqlite3` package work with sqld just by replacing `require('sqlite3')` with `require('@libsql/sqlite3')`, and using a `libsql://` URL instead of a filename:
 
 ```javascript
 const sqlite3 = require('@libsql/sqlite3').verbose();
-const db = new sqlite3.Database('ws://localhost:2023');
+const db = new sqlite3.Database('libsql://localhost:2023?tls=0');
 
 db.serialize(() => {
     db.run('CREATE TABLE lorem (info TEXT)');
@@ -29,21 +29,24 @@ db.close();
 
 ### URL
 
-The library accepts multiple URL schemas, but it always uses WebSockets internally:
+The library accepts the same URL schemas as [`@libsql/client`][libsql-client-ts]:
 
-- `ws://` and `http://` URLs are converted into `ws://` (WebSockets)
-- `wss://`, `https://` and `libsql://` URLs are converted into `wss://` (WebSockets with TLS)
+- `http://` and `https://` connect to a libsql server over HTTP,
+- `ws://` and `wss://` connect to the server over WebSockets,
+- `libsql://` connects to the server using the default protocol (which is now HTTP). `libsql://` URLs use TLS by default, but you can use `?tls=0` to disable TLS (e.g. when you run your own instance of the server locally).
 
 To use a JWT for authentication, you can use the `authToken` query parameter (for example,
 `ws://localhost?authToken=<token>`).
 
 You can also pass a `file:` URL to `new sqlite3.Database()` to use the original `sqlite3` package. The returned database will be a `Database` from `sqlite3`, not the `Database` from `@libsql/sqlite3`. You will need to install `sqlite3` yourself, this package does not depend on `sqlite3`.
 
+[libsql-client-ts]: https://github.com/libsql/libsql-client-ts
+
 ### Usage with Knex
 
 You can use this package with Knex.js by replacing the `sqlite3` package in the SQLite dialect.
 
-**JavaScript:**
+#### JavaScript
 
 ```javascript
 const Knex = require("knex");
@@ -63,7 +66,7 @@ const knex = Knex({
 });
 ```
 
-**TypeScript:**
+#### TypeScript
 
 ```typescript
 import { Knex, knex } from "knex";
@@ -84,10 +87,9 @@ const db = knex({
 
 ## Unsupported features
 
-Most APIs exposed by `sqlite3` should work as expected, but the following features are not yet implemented:
+Most APIs exposed by `sqlite3` should work as expected, but the following features are not implemented:
 
 - Flags passed to `new Database()` (they are ignored)
-- `Database.exec()`
 - `Database.configure()`
 - `Database.loadExtension()`
 - `Database.interrupt()`

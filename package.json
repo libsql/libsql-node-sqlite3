@@ -1,6 +1,6 @@
 {
     "name": "@libsql/sqlite3",
-    "version": "0.2.3-pre",
+    "version": "0.3.0-pre",
     "keywords": [
         "libsql",
         "database",
@@ -34,11 +34,11 @@
         "build": "tsc && cp src/index.d.ts lib/index.d.ts",
         "clean-build": "npm run clean && npm run build",
         "typecheck": "tsc --noEmit",
-        "test": "jest"
+        "test": "jest --runInBand"
     },
 
     "dependencies": {
-        "@libsql/hrana-client": "^0.3.10"
+        "@libsql/hrana-client": "^0.4.1"
     },
     "devDependencies": {
         "@types/jest": "^29.2.5",
