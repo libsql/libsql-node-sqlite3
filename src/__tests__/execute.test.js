@@ -122,6 +122,27 @@ describe("Database.all()", () => {
             ]);
         });
     });
+
+    test("with undefined", (done) => {
+        db.all("SELECT 1", undefined, function (err, rows) {
+            done();
+            expect(err).toBeNull();
+        });
+    });
+
+    test("with undefined in array", (done) => {
+        db.all("SELECT 1", [undefined], function (err, rows) {
+            done();
+            expect(err).toBeNull();
+        });
+    });
+
+    test("with undefined in object", (done) => {
+        db.all("SELECT 1", {x: undefined}, function (err, rows) {
+            done();
+            expect(err).toBeNull();
+        });
+    });
 });
 
 describe("Database.map()", () => {

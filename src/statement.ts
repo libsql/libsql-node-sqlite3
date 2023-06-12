@@ -190,14 +190,24 @@ function bindArgs(stmt: hrana.Stmt, args: any[]): Function | undefined {
 
         const arg0 = args[0];
         if (Array.isArray(arg0)) {
-            stmt.bindIndexes(arg0);
+            for (let i = 0; i < arg0.length; ++i) {
+                if (arg0[i] !== undefined) {
+                    stmt.bindIndex(i + 1, arg0[i]);
+                }
+            }
         } else if (typeof arg0 !== "object" || arg0 instanceof RegExp
              || arg0 instanceof Date || Buffer.isBuffer(arg0))
         {
-            stmt.bindIndexes(args);
+            for (let i = 0; i < args.length; ++i) {
+                if (args[i] !== undefined) {
+                    stmt.bindIndex(i + 1, args[i]);
+                }
+            }
         } else if (typeof arg0 === "object") {
             for (let name in arg0) {
-                stmt.bindName(name, arg0[name]);
+                if (arg0[name] !== undefined) {
+                    stmt.bindName(name, arg0[name]);
+                }
             }
         } else {
             throw new TypeError("Unsupported type of argument");
