@@ -14,6 +14,9 @@ export class Statement extends EventEmitter {
     /** @private */
     constructor(database: Database, sql: string) {
         super();
+        if(sql.match(/^PRAGMA/)){
+            sql = "SELECT 1 WHERE 0;";
+        }
         this.#database = database;
         this.#stmt = new hrana.Stmt(sql);
         this.lastID = NaN;
